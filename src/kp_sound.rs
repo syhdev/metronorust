@@ -1,57 +1,54 @@
-use plotlib::page::Page;
-use plotlib::repr::Plot;
-use plotlib::style::{PointMarker, PointStyle};
-use plotlib::view::ContinuousView;
+const PI: f32 = std::f32::consts::PI;
+const NOISE_SIZE: usize = 128;
 
-const PI: f64 = std::f64::consts::PI;
-
-fn create_noise(n: u32) -> Vec<(f64, f64)> {
-    let mut noise = Vec::new();
-    let phase: f64 = 3.0 * PI / 17.0;
-    for i in 0..n {
-        noise.push((i as f64, f64::sin(i as f64 * phase)));
-    }
-    noise
+pub struct KPSound {
+    noise: [f32; NOISE_SIZE],
+    samples: Vec<f32>,
+    pos: usize,
+    sample_rate: f32,
 }
 
-fn compute_samples(nb_samples: u32, noise: Vec<(f64, f64)>) -> Vec<(f64, f64)> {
-    // https://crypto.stanford.edu/~blynn/sound/karplusstrong.html
+pub fn new_kp_sound() -> KPSound {
+    let kp: KPSound = KPSound {
+        noise: [0.0; NOISE_SIZE],
+        samples: vec![0.0],
+        pos: 0,
+        sample_rate: 0.0,
+    };
 
-    let mut samples: Vec<(f64, f64)> = Vec::new();
-    let n = noise.len();
-    for i in 0..nb_samples as usize {
-        if i < n {
-            samples.push((i as f64, noise[i].1));
-        } else if i > n {
-            samples.push((i as f64, (samples[i - n].1 + samples[i - n - 1].1) / 2.0));
-        } else {
-            samples.push((i as f64, 0.0));
+    kp
+}
+
+impl KPSound {
+    pub fn create_noise(&mut self) {
+        self.noise = [0.0; NOISE_SIZE];
+        let phase: f32 = 2.0 * PI / (NOISE_SIZE as f32);
+        for i in 0..NOISE_SIZE {
+            self.noise[i] = f32::sin(i as f32 * phase);
         }
     }
-    samples
-}
 
-fn main() {
-    let v = create_noise(128);
+    pub fn generate_next_sample(&mut self) -> f32 {
+        // https://crypto.stanford.edu/~blynn/sound/karplusstrong.html
 
-    let base0: u32 = 2;
-    let s = compute_samples(base0.pow(15), v);
+        if self.pos < NOISE_SIZE {
+            self.samples.push(self.noise[self.pos]);
+        } else if self.pos > NOISE_SIZE {
+            self.samples.push(
+                0.92 * ((self.samples[self.pos - NOISE_SIZE]
+                    + self.samples[self.pos - NOISE_SIZE - 1])
+                    / 2.0),
+            );
+        } else {
+            self.samples.push(0.0);
+        };
 
-    let s1: Plot = Plot::new(s).point_style(
-        PointStyle::new()
-            .marker(PointMarker::Cross) // setting the marker to be a square
-            .colour("#DD3355"),
-    );
+        self.pos = self.pos + 1;
 
-    // The 'view' describes what set of data is drawn
-    let base: f64 = 2.;
-    let view = ContinuousView::new()
-        .add(s1)
-        .x_range(0., base.powf(15.))
-        .y_range(-2., 2.)
-        .x_label("Some varying variable")
-        .y_label("The response of something");
+        self.samples[self.pos - 1]
+    }
 
-    // A page with a single view is then saved to an SVG file
-    Page::single(&view).save("scatter.svg").unwrap();
+    pub fn set_sample_rate(&mut self, sample_rate: f32) {
+        self.sample_rate = sample_rate;
+    }
 }

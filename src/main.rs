@@ -1,5 +1,5 @@
-//extern crate anyhow;
 mod audio_setup;
+mod kp_sound;
 mod oscillator;
 extern crate clap;
 

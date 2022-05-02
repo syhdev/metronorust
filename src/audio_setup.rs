@@ -1,4 +1,8 @@
-use crate::oscillator::{new_sound_oscillator, Oscillator};
+use crate::kp_sound::KPSound;
+use crate::{
+    kp_sound::new_kp_sound,
+    oscillator::{new_sound_oscillator, Oscillator},
+};
 use cpal::traits::{DeviceTrait, HostTrait};
 
 pub fn host_device_setup() -> (cpal::Device, cpal::StreamConfig, cpal::SampleFormat) {
@@ -29,9 +33,13 @@ pub fn make_strem(
 
     println!("{} channels", nchannels);
 
-    let mut osc: Oscillator = new_sound_oscillator();
+    // let mut osc: Oscillator = new_sound_oscillator();
+    // osc.set_sample_rate(sample_rate);
+    // osc.set_frequency(440.0);
+
+    let mut osc = new_kp_sound();
     osc.set_sample_rate(sample_rate);
-    osc.set_frequency(440.0);
+    osc.create_noise();
 
     let err_fn = |err| eprintln!("Error building output sound stream: {}", err);
 
@@ -62,7 +70,7 @@ pub fn make_strem(
     stream
 }
 
-fn write_data_f32(data: &mut [f32], osc: &mut Oscillator, nchannels: usize) {
+fn write_data_f32(data: &mut [f32], osc: &mut KPSound, nchannels: usize) {
     for frame in data.chunks_mut(nchannels) {
         let s = osc.generate_next_sample();
         for sample in frame.iter_mut() {
@@ -71,7 +79,7 @@ fn write_data_f32(data: &mut [f32], osc: &mut Oscillator, nchannels: usize) {
     }
 }
 
-fn write_data_i16(data: &mut [i16], osc: &mut Oscillator, nchannels: usize) {
+fn write_data_i16(data: &mut [i16], osc: &mut KPSound, nchannels: usize) {
     for frame in data.chunks_mut(nchannels) {
         let s = osc.generate_next_sample() as i16;
         for sample in frame.iter_mut() {
@@ -80,7 +88,7 @@ fn write_data_i16(data: &mut [i16], osc: &mut Oscillator, nchannels: usize) {
     }
 }
 
-fn write_data_u16(data: &mut [u16], osc: &mut Oscillator, nchannels: usize) {
+fn write_data_u16(data: &mut [u16], osc: &mut KPSound, nchannels: usize) {
     for frame in data.chunks_mut(nchannels) {
         let s = osc.generate_next_sample() as u16;
         for sample in frame.iter_mut() {
