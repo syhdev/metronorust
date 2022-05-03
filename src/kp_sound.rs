@@ -35,13 +35,13 @@ impl KPSound {
     }
 
     fn create_kp_table(&mut self) {
-        let mut kp_table_length = self.sample_rate as usize;
+        let kp_table_length = self.sample_rate as usize;
         self.kp_samples = vec![0.0; kp_table_length];
         for i in 0..kp_table_length {
             if i < self.noise_length {
                 self.kp_samples[i] = self.noise[i];
             } else {
-                self.kp_samples[i] = self.kp_samples[i - self.noise_length] * 0.92;
+                self.kp_samples[i] = self.kp_samples[i - self.noise_length] * 0.90;
             }
         }
     }

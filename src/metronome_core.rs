@@ -32,7 +32,6 @@ pub fn new_metronome_core() -> MetronomeCore {
     };
 
     metronome.init_metronome();
-    metronome.init_score();
 
     metronome
 }
@@ -44,7 +43,7 @@ impl MetronomeCore {
         }
     }
 
-    fn init_score(&mut self) {
+    pub fn init_score(&mut self) {
         self.score_length = self.time_per_bar * self.time_subdivision;
         self.score = vec![0; self.score_length];
 
@@ -87,5 +86,15 @@ impl MetronomeCore {
         }
 
         output
+    }
+
+    /// Set the metronome core's time per bar.
+    pub fn set_time_per_bar(&mut self, time_per_bar: usize) {
+        self.time_per_bar = time_per_bar;
+    }
+
+    /// Set the metronome core's time subdivision.
+    pub fn set_time_subdivision(&mut self, time_subdivision: usize) {
+        self.time_subdivision = time_subdivision;
     }
 }

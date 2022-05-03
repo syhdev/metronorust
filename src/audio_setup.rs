@@ -26,6 +26,9 @@ pub fn make_strem(
     device: &cpal::Device,
     config: &cpal::StreamConfig,
     format: &cpal::SampleFormat,
+    bpm: usize,
+    time_signature: usize,
+    subdiv: usize,
 ) -> Result<cpal::Stream, cpal::BuildStreamError> {
     let sample_rate = config.sample_rate.0 as f32;
     let nchannels = config.channels as usize;
@@ -42,6 +45,10 @@ pub fn make_strem(
 
     let mut metronome: MetronomeCore = new_metronome_core();
     metronome.set_sample_rate(sample_rate);
+    metronome.set_bpm(bpm);
+    metronome.set_time_per_bar(time_signature);
+    metronome.set_time_subdivision(subdiv);
+    metronome.init_score();
 
     let err_fn = |err| eprintln!("Error building output sound stream: {}", err);
 
