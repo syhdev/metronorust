@@ -1,8 +1,7 @@
 use crate::kp_sound::KPSound;
-use crate::{
-    kp_sound::new_kp_sound,
-    oscillator::{new_sound_oscillator, Oscillator},
-};
+use crate::metronome_core;
+use crate::metronome_core::new_metronome_core;
+use crate::metronome_core::MetronomeCore;
 use cpal::traits::{DeviceTrait, HostTrait};
 
 pub fn host_device_setup() -> (cpal::Device, cpal::StreamConfig, cpal::SampleFormat) {
@@ -37,9 +36,12 @@ pub fn make_strem(
     // osc.set_sample_rate(sample_rate);
     // osc.set_frequency(440.0);
 
-    let mut osc = new_kp_sound();
-    osc.set_sample_rate(sample_rate);
-    osc.create_noise();
+    // let mut osc = new_kp_sound();
+    // osc.set_sample_rate(sample_rate);
+    // osc.create_noise();
+
+    let mut metronome: MetronomeCore = new_metronome_core();
+    metronome.set_sample_rate(sample_rate);
 
     let err_fn = |err| eprintln!("Error building output sound stream: {}", err);
 
@@ -47,21 +49,21 @@ pub fn make_strem(
         cpal::SampleFormat::F32 => device.build_output_stream(
             &config,
             move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
-                write_data_f32(data, &mut osc, nchannels)
+                write_data_f32(data, &mut metronome, nchannels)
             },
             err_fn,
         ),
         cpal::SampleFormat::I16 => device.build_output_stream(
             &config,
             move |data: &mut [i16], _: &cpal::OutputCallbackInfo| {
-                write_data_i16(data, &mut osc, nchannels)
+                write_data_i16(data, &mut metronome, nchannels)
             },
             err_fn,
         ),
         cpal::SampleFormat::U16 => device.build_output_stream(
             &config,
             move |data: &mut [u16], _: &cpal::OutputCallbackInfo| {
-                write_data_u16(data, &mut osc, nchannels)
+                write_data_u16(data, &mut metronome, nchannels)
             },
             err_fn,
         ),
@@ -70,27 +72,27 @@ pub fn make_strem(
     stream
 }
 
-fn write_data_f32(data: &mut [f32], osc: &mut KPSound, nchannels: usize) {
+fn write_data_f32(data: &mut [f32], metronome: &mut MetronomeCore, nchannels: usize) {
     for frame in data.chunks_mut(nchannels) {
-        let s = osc.generate_next_sample();
+        let s = metronome.get_next_sample();
         for sample in frame.iter_mut() {
             *sample = s;
         }
     }
 }
 
-fn write_data_i16(data: &mut [i16], osc: &mut KPSound, nchannels: usize) {
+fn write_data_i16(data: &mut [i16], metronome: &mut MetronomeCore, nchannels: usize) {
     for frame in data.chunks_mut(nchannels) {
-        let s = osc.generate_next_sample() as i16;
+        let s = metronome.get_next_sample() as i16;
         for sample in frame.iter_mut() {
             *sample = s;
         }
     }
 }
 
-fn write_data_u16(data: &mut [u16], osc: &mut KPSound, nchannels: usize) {
+fn write_data_u16(data: &mut [u16], metronome: &mut MetronomeCore, nchannels: usize) {
     for frame in data.chunks_mut(nchannels) {
-        let s = osc.generate_next_sample() as u16;
+        let s = metronome.get_next_sample() as u16;
         for sample in frame.iter_mut() {
             *sample = s;
         }

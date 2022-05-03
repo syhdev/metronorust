@@ -1,5 +1,6 @@
 mod audio_setup;
 mod kp_sound;
+mod metronome_core;
 mod oscillator;
 extern crate clap;
 
@@ -18,6 +19,6 @@ fn main() -> Result<(), String> {
     };
 
     stream.play().unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(3000));
+    std::thread::sleep(std::time::Duration::from_millis(10000));
     Ok(())
 }
