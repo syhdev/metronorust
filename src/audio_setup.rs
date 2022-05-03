@@ -1,5 +1,3 @@
-use crate::kp_sound::KPSound;
-use crate::metronome_core;
 use crate::metronome_core::new_metronome_core;
 use crate::metronome_core::MetronomeCore;
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -34,14 +32,6 @@ pub fn make_strem(
     let nchannels = config.channels as usize;
 
     println!("{} channels", nchannels);
-
-    // let mut osc: Oscillator = new_sound_oscillator();
-    // osc.set_sample_rate(sample_rate);
-    // osc.set_frequency(440.0);
-
-    // let mut osc = new_kp_sound();
-    // osc.set_sample_rate(sample_rate);
-    // osc.create_noise();
 
     let mut metronome: MetronomeCore = new_metronome_core();
     metronome.set_sample_rate(sample_rate);
