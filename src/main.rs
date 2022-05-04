@@ -12,9 +12,9 @@ use cpal::traits::StreamTrait;
 #[clap(version = "0.1")]
 #[clap(about = "A simple metronome", long_about = None)]
 struct Cli {
-    #[clap(short, long)]
+    #[clap(short, long, default_value_t = 60)]
     bpm: usize,
-    #[clap(short, long)]
+    #[clap(short, long, default_value_t = 4)]
     time_signature: usize,
     #[clap(short, long, default_value_t = 1)]
     subdiv: usize,
@@ -41,6 +41,7 @@ fn main() -> Result<(), String> {
     };
 
     stream.play().unwrap();
-    std::thread::sleep(std::time::Duration::from_millis(10000));
+    std::thread::sleep(std::time::Duration::from_millis(3000));
+
     Ok(())
 }
