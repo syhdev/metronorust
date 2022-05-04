@@ -16,7 +16,7 @@ struct Cli {
     bpm: usize,
     #[clap(short, long)]
     time_signature: usize,
-    #[clap(short, long)]
+    #[clap(short, long, default_value_t = 1)]
     subdiv: usize,
 }
 

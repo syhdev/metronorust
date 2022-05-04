@@ -39,7 +39,7 @@ pub fn new_metronome_core() -> MetronomeCore {
 impl MetronomeCore {
     fn init_metronome(&mut self) {
         for i in 0..4 {
-            self.click_states[i].set_noise_length(i * 50);
+            self.click_states[i].set_noise_length(i * 30);
         }
     }
 
@@ -50,11 +50,13 @@ impl MetronomeCore {
         for i in 0..self.score_length {
             if i % self.time_subdivision == 0 {
                 // if main click
-                self.score[i] = 1;
-            } else {
                 self.score[i] = 2;
+            } else {
+                self.score[i] = 3;
             }
         }
+
+        self.score[0] = 1; // First click of the bar will sound different
     }
 
     pub fn set_sample_rate(&mut self, sample_rate: f32) {
