@@ -35,9 +35,9 @@ pub fn make_strem(
 
     let mut metronome: MetronomeCore = new_metronome_core();
     metronome.set_sample_rate(sample_rate);
-    metronome.set_bpm(bpm);
     metronome.set_time_per_bar(time_signature);
     metronome.set_time_subdivision(subdiv);
+    metronome.set_bpm(bpm);
     metronome.init_score();
 
     let err_fn = |err| eprintln!("Error building output sound stream: {}", err);

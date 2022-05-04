@@ -23,7 +23,7 @@ pub fn new_metronome_core() -> MetronomeCore {
         nb_sample_per_click: 1,
         bpm: 60,
         time_per_bar: 4,
-        time_subdivision: 3,
+        time_subdivision: 1,
         score_length: 1,
         sample_rate: 0.0,
         score: vec![0],
