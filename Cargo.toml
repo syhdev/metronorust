@@ -9,4 +9,4 @@ edition = "2021"
 cpal = "0.13.5"
 clap = { version = "3.1.12", features = ["derive"] }
 sdl2 = { version = "0.35.2", features = ["gfx"] }
-# sdl2 = "0.35.2"
+gl = "0.14.0"
