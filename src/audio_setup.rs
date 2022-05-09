@@ -31,8 +31,6 @@ pub fn make_strem(
     let sample_rate = config.sample_rate.0 as f32;
     let nchannels = config.channels as usize;
 
-    println!("{} channels", nchannels);
-
     let mut metronome: MetronomeCore = new_metronome_core();
     metronome.set_sample_rate(sample_rate);
     metronome.set_time_per_bar(time_signature);

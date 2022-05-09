@@ -5,6 +5,7 @@ mod gui_canvas;
 mod knob_widget;
 mod kp_sound;
 mod metronome_core;
+mod nb_widget;
 mod ui_widgets;
 use clap::Parser;
 
@@ -41,7 +42,7 @@ fn main() -> Result<(), String> {
 
     let (device, config, format) = host_device_setup();
 
-    let stream = match make_strem(
+    let mut stream = match make_strem(
         &device,
         &config,
         &format,
@@ -55,9 +56,6 @@ fn main() -> Result<(), String> {
             return Err("Stream not built".to_string());
         }
     };
-
-    // stream.play().unwrap();
-    // std::thread::sleep(std::time::Duration::from_millis(3000));
 
     let sdl_context = sdl2::init()?;
     let video_subsys = sdl_context.video()?;
@@ -77,37 +75,8 @@ fn main() -> Result<(), String> {
     canvas.set_draw_color(pixels::Color::RGB(20, 20, 20));
     canvas.clear();
 
-    // let mut btn1: ButtonUp = ButtonUp {
-    //     top_left_corner: Point { x: 150, y: 150 },
-    //     width: 50,
-    //     height: 50,
-    //     color: pixels::Color::RGB(255, 20, 20),
-    // };
-    // let mut btn2: ButtonUp = ButtonUp {
-    //     top_left_corner: Point {
-    //         x: 150 + 100,
-    //         y: 150 + 100,
-    //     },
-    //     width: 50,
-    //     height: 50,
-    //     color: pixels::Color::RGB(255, 20, 20),
-    // };
-    // let mut btn3: ButtonUp = ButtonUp {
-    //     top_left_corner: Point {
-    //         x: 150 + 200,
-    //         y: 150 + 200,
-    //     },
-    //     width: 50,
-    //     height: 50,
-    //     color: pixels::Color::RGB(255, 20, 20),
-    // };
-
     let mut gui_canvas = GUICanvas::new_gui_canvas(SCREEN_HEIGHT as i16, SCREEN_WIDTH as i16, 5, 3);
 
-    // btn1.render(&mut canvas);
-    //btn2.render(&mut canvas);
-    //btn3.render(&mut canvas);
-    // click1.render(&mut canvas);
     gui_canvas.render_canvas(&mut canvas);
     canvas.present();
 
@@ -131,14 +100,42 @@ fn main() -> Result<(), String> {
                     mouse_btn, x, y, ..
                 } => match mouse_btn {
                     MouseButton::Left => {
-                        // if btn1.is_mouse_inside(x, y) {
-                        //     btn1.on_click(&mut canvas)
-                        // }
-                        gui_canvas.on_click(x, y);
-                        canvas.set_draw_color(pixels::Color::RGB(20, 20, 20));
-                        canvas.clear();
-                        gui_canvas.render_canvas(&mut canvas);
-                        canvas.present();
+                        if gui_canvas.on_click(x, y) {
+                            gui_canvas.init_click_widgets(
+                                gui_canvas
+                                    .btn_time_per_bar
+                                    .current_number
+                                    .try_into()
+                                    .unwrap(),
+                                gui_canvas.btn_subdiv.current_number.try_into().unwrap(),
+                            );
+                            stream.pause().unwrap();
+                            canvas.set_draw_color(pixels::Color::RGB(20, 20, 20));
+                            canvas.clear();
+                            gui_canvas.render_canvas(&mut canvas);
+                            canvas.present();
+
+                            stream = match make_strem(
+                                &device,
+                                &config,
+                                &format,
+                                gui_canvas.knob1.current_position.try_into().unwrap(),
+                                gui_canvas
+                                    .btn_time_per_bar
+                                    .current_number
+                                    .try_into()
+                                    .unwrap(),
+                                gui_canvas.btn_subdiv.current_number.try_into().unwrap(),
+                            ) {
+                                Ok(stream) => stream,
+                                Err(e) => {
+                                    println!("error {}", e);
+                                    return Err("Stream not built".to_string());
+                                }
+                            };
+
+                            stream.play().unwrap();
+                        }
                     }
                     _ => {}
                 },
@@ -149,11 +146,35 @@ fn main() -> Result<(), String> {
                     unsafe {
                         SDL_GetMouseState(pos_x, pos_y);
                     }
-                    gui_canvas.on_mouse_wheel(*pos_x, *pos_y, y);
-                    canvas.set_draw_color(pixels::Color::RGB(20, 20, 20));
-                    canvas.clear();
-                    gui_canvas.render_canvas(&mut canvas);
-                    canvas.present();
+
+                    if gui_canvas.on_mouse_wheel(*pos_x, *pos_y, y) {
+                        stream.pause().unwrap();
+                        canvas.set_draw_color(pixels::Color::RGB(20, 20, 20));
+                        canvas.clear();
+                        gui_canvas.render_canvas(&mut canvas);
+                        canvas.present();
+
+                        stream = match make_strem(
+                            &device,
+                            &config,
+                            &format,
+                            gui_canvas.knob1.current_position.try_into().unwrap(),
+                            gui_canvas
+                                .btn_time_per_bar
+                                .current_number
+                                .try_into()
+                                .unwrap(),
+                            gui_canvas.btn_subdiv.current_number.try_into().unwrap(),
+                        ) {
+                            Ok(stream) => stream,
+                            Err(e) => {
+                                println!("error {}", e);
+                                return Err("Stream not built".to_string());
+                            }
+                        };
+
+                        stream.play().unwrap();
+                    }
                 }
 
                 Event::MouseMotion { x, y, .. } => {
@@ -178,6 +199,9 @@ fn main() -> Result<(), String> {
             }
         }
     }
+
+    // stream.play().unwrap();
+    // std::thread::sleep(std::time::Duration::from_millis(3000));
 
     Ok(())
 }
