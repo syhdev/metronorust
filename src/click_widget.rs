@@ -1,15 +1,9 @@
 extern crate sdl2;
-use sdl2::event::Event;
+use crate::common::Point;
 use sdl2::gfx::primitives::DrawRenderer;
-use sdl2::keyboard::Keycode;
 use sdl2::pixels;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
-
-pub struct Point {
-    pub x: i16,
-    pub y: i16,
-}
 
 pub enum ClickState {
     Sound0, //no sound
