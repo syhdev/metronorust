@@ -1,4 +1,5 @@
 use crate::click_widget;
+use crate::gui_canvas;
 use crate::metronome_core::new_metronome_core;
 use crate::metronome_core::MetronomeCore;
 use cpal::traits::{DeviceTrait, HostTrait};
@@ -28,6 +29,7 @@ pub fn make_strem(
     bpm: usize,
     time_signature: usize,
     subdiv: usize,
+    score: Vec<usize>,
 ) -> Result<cpal::Stream, cpal::BuildStreamError> {
     let sample_rate = config.sample_rate.0 as f32;
     let nchannels = config.channels as usize;
@@ -37,7 +39,7 @@ pub fn make_strem(
     metronome.set_time_per_bar(time_signature);
     metronome.set_time_subdivision(subdiv);
     metronome.set_bpm(bpm);
-    metronome.init_score();
+    metronome.init_score(score);
 
     let err_fn = |err| eprintln!("Error building output sound stream: {}", err);
 

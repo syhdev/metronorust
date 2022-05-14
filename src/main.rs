@@ -42,23 +42,6 @@ fn main() -> Result<(), String> {
 
     let (device, config, format) = host_device_setup();
 
-    let mut stream = match make_strem(
-        &device,
-        &config,
-        &format,
-        cli.bpm,
-        cli.time_signature,
-        cli.subdiv,
-    ) {
-        Ok(stream) => stream,
-        Err(e) => {
-            println!("error {}", e);
-            return Err("Stream not built".to_string());
-        }
-    };
-
-    stream.play().unwrap();
-
     let sdl_context = sdl2::init()?;
     let video_subsys = sdl_context.video()?;
     let window = video_subsys
@@ -78,6 +61,24 @@ fn main() -> Result<(), String> {
     canvas.clear();
 
     let mut gui_canvas = GUICanvas::new_gui_canvas(SCREEN_HEIGHT as i16, SCREEN_WIDTH as i16, 4, 1);
+
+    let mut stream = match make_strem(
+        &device,
+        &config,
+        &format,
+        cli.bpm,
+        cli.time_signature,
+        cli.subdiv,
+        gui_canvas.compute_score(),
+    ) {
+        Ok(stream) => stream,
+        Err(e) => {
+            println!("error {}", e);
+            return Err("Stream not built".to_string());
+        }
+    };
+
+    stream.play().unwrap();
 
     gui_canvas.render_canvas(&mut canvas);
     canvas.present();
@@ -128,6 +129,7 @@ fn main() -> Result<(), String> {
                                     .try_into()
                                     .unwrap(),
                                 gui_canvas.btn_subdiv.current_number.try_into().unwrap(),
+                                gui_canvas.compute_score(),
                             ) {
                                 Ok(stream) => stream,
                                 Err(e) => {
@@ -140,10 +142,32 @@ fn main() -> Result<(), String> {
                         }
                         999 => {}
                         _ => {
+                            stream.pause().unwrap();
                             canvas.set_draw_color(pixels::Color::RGB(20, 20, 20));
                             canvas.clear();
                             gui_canvas.render_canvas(&mut canvas);
                             canvas.present();
+                            stream = match make_strem(
+                                &device,
+                                &config,
+                                &format,
+                                gui_canvas.knob1.current_position.try_into().unwrap(),
+                                gui_canvas
+                                    .btn_time_per_bar
+                                    .current_number
+                                    .try_into()
+                                    .unwrap(),
+                                gui_canvas.btn_subdiv.current_number.try_into().unwrap(),
+                                gui_canvas.compute_score(),
+                            ) {
+                                Ok(stream) => stream,
+                                Err(e) => {
+                                    println!("error {}", e);
+                                    return Err("Stream not built".to_string());
+                                }
+                            };
+
+                            stream.play().unwrap();
                         }
                     },
                     _ => {}
@@ -174,6 +198,7 @@ fn main() -> Result<(), String> {
                                 .try_into()
                                 .unwrap(),
                             gui_canvas.btn_subdiv.current_number.try_into().unwrap(),
+                            gui_canvas.compute_score(),
                         ) {
                             Ok(stream) => stream,
                             Err(e) => {

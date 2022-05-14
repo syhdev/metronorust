@@ -43,20 +43,24 @@ impl MetronomeCore {
         }
     }
 
-    pub fn init_score(&mut self) {
+    pub fn init_score(&mut self, score: Vec<usize>) {
         self.score_length = self.time_per_bar * self.time_subdivision;
-        self.score = vec![0; self.score_length];
 
-        for i in 0..self.score_length {
-            if i % self.time_subdivision == 0 {
-                // if main click
-                self.score[i] = 2;
-            } else {
-                self.score[i] = 3;
-            }
-        }
+        println!("{:?}", score);
+        self.score = score;
 
-        self.score[0] = 1; // First click of the bar will sound different
+        // self.score = vec![0; self.score_length];
+
+        // for i in 0..self.score_length {
+        //     if i % self.time_subdivision == 0 {
+        //         // if main click
+        //         self.score[i] = 2;
+        //     } else {
+        //         self.score[i] = 3;
+        //     }
+        // }
+
+        // self.score[0] = 1; // First click of the bar will sound different
     }
 
     pub fn set_sample_rate(&mut self, sample_rate: f32) {

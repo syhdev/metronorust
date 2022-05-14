@@ -88,6 +88,7 @@ impl GUICanvas {
 
             let mut color: pixels::Color;
             let radius: i16;
+            let mut state: ClickState;
 
             if i % time_subdivision == 0 {
                 color = MAIN_CLICK_COLOR;
@@ -95,9 +96,15 @@ impl GUICanvas {
                 if i == 0 {
                     color = pixels::Color::RGB(255, 255, 255);
                 }
+                state = ClickState::Sound2
             } else {
                 color = SECO_CLICK_COLOR;
                 radius = 25;
+                state = ClickState::Sound3
+            }
+
+            if i == 0 {
+                state = ClickState::Sound1;
             }
 
             clicks.push(ClickWidget {
@@ -107,11 +114,25 @@ impl GUICanvas {
                 },
                 radius: radius,
                 color: color,
-                state: ClickState::Sound0,
+                state: state,
             });
         }
 
         self.click_widgets = clicks;
+    }
+
+    pub fn compute_score(&mut self) -> Vec<usize> {
+        let mut score: Vec<usize> = vec![];
+        for i in 0..self.click_widgets.len() {
+            match self.click_widgets[i].state {
+                ClickState::Sound0 => score.push(0),
+                ClickState::Sound1 => score.push(1),
+                ClickState::Sound2 => score.push(2),
+                ClickState::Sound3 => score.push(3),
+            }
+        }
+        println!("{:?}", score);
+        score
     }
 
     pub fn render_canvas(&mut self, canvas: &mut Canvas<Window>) {
