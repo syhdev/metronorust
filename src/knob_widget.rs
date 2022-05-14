@@ -1,13 +1,9 @@
 extern crate sdl2;
+use crate::colors::{KNOB, KNOB_CENTER, TEXT};
 use crate::common::Point;
 use sdl2::gfx::primitives::DrawRenderer;
-use sdl2::pixels;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
-
-const KNOB_CENTER: pixels::Color = pixels::Color::RGB(51, 0, 208);
-const KNOB: pixels::Color = pixels::Color::RGB(255, 51, 0);
-const TEXT: pixels::Color = pixels::Color::RGB(255, 255, 255);
 
 pub struct KnobWidget {
     pub center: Point,
@@ -21,7 +17,7 @@ impl KnobWidget {
             .filled_pie(
                 self.center.x,
                 self.center.y,
-                self.radius + 10,
+                self.radius + 20,
                 -90,
                 self.current_position - 90,
                 KNOB,
@@ -33,10 +29,10 @@ impl KnobWidget {
             .unwrap();
 
         canvas
-            .circle(self.center.x, self.center.y, self.radius + 11, KNOB_CENTER)
+            .circle(self.center.x, self.center.y, self.radius + 21, KNOB_CENTER)
             .unwrap();
         canvas
-            .circle(self.center.x, self.center.y, self.radius + 12, KNOB_CENTER)
+            .circle(self.center.x, self.center.y, self.radius + 22, KNOB_CENTER)
             .unwrap();
 
         canvas

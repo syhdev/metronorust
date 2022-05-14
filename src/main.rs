@@ -1,5 +1,6 @@
 mod audio_setup;
 mod click_widget;
+mod colors;
 mod common;
 mod gui_canvas;
 mod knob_widget;

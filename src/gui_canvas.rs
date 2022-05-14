@@ -9,8 +9,7 @@ use sdl2::pixels;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 
-const MAIN_CLICK_COLOR: pixels::Color = pixels::Color::RGB(51, 0, 208);
-const SECO_CLICK_COLOR: pixels::Color = pixels::Color::RGB(255, 51, 0);
+use crate::colors::{FIRST_CLICK_COLOR, MAIN_CIRCLE, MAIN_CLICK_COLOR, SECO_CLICK_COLOR};
 
 pub struct GUICanvas {
     pub click_widgets: Vec<ClickWidget>,
@@ -93,18 +92,15 @@ impl GUICanvas {
             if i % time_subdivision == 0 {
                 color = MAIN_CLICK_COLOR;
                 radius = 30;
+                state = ClickState::Sound2;
                 if i == 0 {
-                    color = pixels::Color::RGB(255, 255, 255);
+                    color = FIRST_CLICK_COLOR;
+                    state = ClickState::Sound3;
                 }
-                state = ClickState::Sound2
             } else {
                 color = SECO_CLICK_COLOR;
-                radius = 25;
-                state = ClickState::Sound3
-            }
-
-            if i == 0 {
-                state = ClickState::Sound1;
+                radius = 20;
+                state = ClickState::Sound1
             }
 
             clicks.push(ClickWidget {
@@ -126,9 +122,9 @@ impl GUICanvas {
         for i in 0..self.click_widgets.len() {
             match self.click_widgets[i].state {
                 ClickState::Sound0 => score.push(0),
-                ClickState::Sound1 => score.push(1),
+                ClickState::Sound1 => score.push(3),
                 ClickState::Sound2 => score.push(2),
-                ClickState::Sound3 => score.push(3),
+                ClickState::Sound3 => score.push(1),
             }
         }
         score
@@ -136,12 +132,7 @@ impl GUICanvas {
 
     pub fn render_canvas(&mut self, canvas: &mut Canvas<Window>) {
         canvas
-            .circle(
-                self.center_x,
-                self.center_y,
-                self.metro_radius,
-                pixels::Color::RGB(255, 133, 102),
-            )
+            .circle(self.center_x, self.center_y, self.metro_radius, MAIN_CIRCLE)
             .unwrap();
 
         for i in 0..self.click_widgets.len() {

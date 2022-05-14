@@ -26,20 +26,34 @@ impl ClickWidget {
                 canvas
                     .circle(self.center.x, self.center.y, self.radius - 15, self.color)
                     .unwrap();
+                canvas
+                    .filled_circle(self.center.x, self.center.y, self.radius - 15, self.color)
+                    .unwrap();
             }
             ClickState::Sound1 => {
                 canvas
                     .circle(self.center.x, self.center.y, self.radius - 10, self.color)
                     .unwrap();
+                canvas
+                    .filled_circle(self.center.x, self.center.y, self.radius - 15, self.color)
+                    .unwrap();
             }
+
             ClickState::Sound2 => {
                 canvas
                     .circle(self.center.x, self.center.y, self.radius - 5, self.color)
                     .unwrap();
+                canvas
+                    .filled_circle(self.center.x, self.center.y, self.radius - 15, self.color)
+                    .unwrap();
             }
+
             ClickState::Sound3 => {
                 canvas
                     .circle(self.center.x, self.center.y, self.radius, self.color)
+                    .unwrap();
+                canvas
+                    .filled_circle(self.center.x, self.center.y, self.radius - 15, self.color)
                     .unwrap();
             }
         }
