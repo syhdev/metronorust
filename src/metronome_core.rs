@@ -1,11 +1,12 @@
 use crate::kp_sound::{new_kp_sound, KPSound};
 
+#[derive(Clone)]
 pub struct MetronomeCore {
     click_states: [KPSound; 4],
     nb_sample_per_click: usize,
-    bpm: usize,
-    time_per_bar: usize,
-    time_subdivision: usize,
+    pub bpm: usize,
+    pub time_per_bar: usize,
+    pub time_subdivision: usize,
     score_length: usize,
     sample_rate: f32,
     score: Vec<usize>,
@@ -24,13 +25,14 @@ pub fn new_metronome_core() -> MetronomeCore {
         bpm: 60,
         time_per_bar: 4,
         time_subdivision: 1,
-        score_length: 1,
+        score_length: 4,
         sample_rate: 0.0,
         score: vec![0],
         position_in_score: 0,
         current_sample_index: 0,
     };
 
+    println!("new metronome");
     metronome.init_metronome();
 
     metronome
@@ -68,12 +70,15 @@ impl MetronomeCore {
     }
 
     pub fn set_bpm(&mut self, bpm: usize) {
+        println!("{}", bpm);
+
         self.bpm = bpm;
         self.nb_sample_per_click =
             self.sample_rate as usize * 60 / (self.bpm * self.time_subdivision);
     }
 
     pub fn get_next_sample(&mut self) -> f32 {
+        println!("{}", "rr");
         let output: f32 = self.click_states[self.score[self.position_in_score]].get_next_sample();
         self.current_sample_index += 1;
         // shouldSync = false;
