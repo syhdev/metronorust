@@ -57,6 +57,8 @@ fn main() -> Result<(), String> {
         }
     };
 
+    stream.play().unwrap();
+
     let sdl_context = sdl2::init()?;
     let video_subsys = sdl_context.video()?;
     let window = video_subsys
@@ -75,7 +77,7 @@ fn main() -> Result<(), String> {
     canvas.set_draw_color(pixels::Color::RGB(20, 20, 20));
     canvas.clear();
 
-    let mut gui_canvas = GUICanvas::new_gui_canvas(SCREEN_HEIGHT as i16, SCREEN_WIDTH as i16, 5, 3);
+    let mut gui_canvas = GUICanvas::new_gui_canvas(SCREEN_HEIGHT as i16, SCREEN_WIDTH as i16, 4, 1);
 
     gui_canvas.render_canvas(&mut canvas);
     canvas.present();

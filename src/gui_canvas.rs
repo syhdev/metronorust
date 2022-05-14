@@ -45,7 +45,7 @@ impl GUICanvas {
                         y: center_y,
                     },
                     radius: 100,
-                    current_position: 120,
+                    current_position: 60,
                 }
             },
             btn_time_per_bar: {
