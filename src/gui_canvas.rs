@@ -131,7 +131,6 @@ impl GUICanvas {
                 ClickState::Sound3 => score.push(3),
             }
         }
-        println!("{:?}", score);
         score
     }
 

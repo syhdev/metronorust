@@ -48,19 +48,15 @@ impl ClickWidget {
     pub fn on_click(&mut self) {
         match self.state {
             ClickState::Sound0 => {
-                println!("now sound1");
                 self.state = ClickState::Sound1;
             }
             ClickState::Sound1 => {
-                println!("now sound2");
                 self.state = ClickState::Sound2;
             }
             ClickState::Sound2 => {
-                println!("now sound3");
                 self.state = ClickState::Sound3;
             }
             ClickState::Sound3 => {
-                println!("now sound0");
                 self.state = ClickState::Sound0;
             }
         }
