@@ -101,8 +101,8 @@ fn main() -> Result<(), String> {
                 Event::MouseButtonDown {
                     mouse_btn, x, y, ..
                 } => match mouse_btn {
-                    MouseButton::Left => {
-                        if gui_canvas.on_click(x, y) {
+                    MouseButton::Left => match gui_canvas.on_click(x, y) {
+                        200 => {
                             gui_canvas.init_click_widgets(
                                 gui_canvas
                                     .btn_time_per_bar
@@ -138,7 +138,14 @@ fn main() -> Result<(), String> {
 
                             stream.play().unwrap();
                         }
-                    }
+                        999 => {}
+                        _ => {
+                            canvas.set_draw_color(pixels::Color::RGB(20, 20, 20));
+                            canvas.clear();
+                            gui_canvas.render_canvas(&mut canvas);
+                            canvas.present();
+                        }
+                    },
                     _ => {}
                 },
 

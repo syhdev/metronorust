@@ -1,3 +1,4 @@
+use crate::click_widget;
 use crate::metronome_core::new_metronome_core;
 use crate::metronome_core::MetronomeCore;
 use cpal::traits::{DeviceTrait, HostTrait};

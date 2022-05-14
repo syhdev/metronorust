@@ -135,22 +135,22 @@ impl GUICanvas {
         self.btn_subdiv.render(canvas);
     }
 
-    pub fn on_click(&mut self, x: i32, y: i32) -> bool {
+    pub fn on_click(&mut self, x: i32, y: i32) -> usize {
         for i in 0..self.click_widgets.len() {
             if self.click_widgets[i].is_mouse_inside(x, y) {
                 self.click_widgets[i].on_click();
-                return true;
+                return i;
             }
         }
         if self.btn_time_per_bar.is_mouse_inside(x, y) {
             self.btn_time_per_bar.on_click(x as i16, y as i16);
-            return true;
+            return 200;
         } else if self.btn_subdiv.is_mouse_inside(x, y) {
             self.btn_subdiv.on_click(x as i16, y as i16);
-            return true;
+            return 200;
         }
 
-        return false;
+        return 999;
     }
 
     pub fn on_mouse_wheel(&mut self, pos_x: i32, pos_y: i32, move_y: i32) -> bool {
