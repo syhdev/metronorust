@@ -1,7 +1,5 @@
 const PI: f32 = std::f32::consts::PI;
 
-#[derive(Clone)]
-
 pub struct KPSound {
     noise: Vec<f32>,
     kp_samples: Vec<f32>,
