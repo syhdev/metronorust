@@ -1,12 +1,9 @@
 extern crate sdl2;
+use crate::colors::{BTN, TEXT};
 use crate::common::Point;
 use sdl2::gfx::primitives::DrawRenderer;
-use sdl2::pixels;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
-
-const BTN: pixels::Color = pixels::Color::RGB(51, 0, 208);
-const TEXT: pixels::Color = pixels::Color::RGB(255, 255, 255);
 
 pub struct NbWidget {
     pub top_left_corner: Point,
