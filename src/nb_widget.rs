@@ -74,6 +74,7 @@ impl NbWidget {
         {
             if self.current_number >= 2 {
                 self.current_number -= 1;
+                println!("{}", self.current_number);
             }
         }
     }

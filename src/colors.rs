@@ -9,3 +9,5 @@ pub const SECO_CLICK_COLOR: pixels::Color = pixels::Color::RGB(255, 51, 0);
 pub const FIRST_CLICK_COLOR: pixels::Color = pixels::Color::RGB(255, 255, 255);
 
 pub const MAIN_CIRCLE: pixels::Color = pixels::Color::RGB(255, 85, 0);
+
+pub const BACKGROUND_COLOR: pixels::Color = pixels::Color::RGB(20, 20, 20);

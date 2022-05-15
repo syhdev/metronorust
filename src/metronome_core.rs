@@ -43,7 +43,14 @@ impl MetronomeCore {
         }
     }
 
-    pub fn init_score(&mut self, score: Vec<usize>) {
+    pub fn setup(&mut self, time_per_bar: usize, subdiv: usize, bpm: usize, score: Vec<usize>) {
+        self.set_time_per_bar(time_per_bar);
+        self.set_time_subdivision(subdiv);
+        self.set_bpm(bpm);
+        self.init_score(score);
+    }
+
+    fn init_score(&mut self, score: Vec<usize>) {
         self.score_length = self.time_per_bar * self.time_subdivision;
 
         self.score = score;
@@ -57,7 +64,7 @@ impl MetronomeCore {
         }
     }
 
-    pub fn set_bpm(&mut self, bpm: usize) {
+    fn set_bpm(&mut self, bpm: usize) {
         self.bpm = bpm;
         self.nb_sample_per_click =
             self.sample_rate as usize * 60 / (self.bpm * self.time_subdivision);
@@ -81,12 +88,18 @@ impl MetronomeCore {
     }
 
     /// Set the metronome core's time per bar.
-    pub fn set_time_per_bar(&mut self, time_per_bar: usize) {
+    fn set_time_per_bar(&mut self, time_per_bar: usize) {
         self.time_per_bar = time_per_bar;
+        self.score_length = self.time_per_bar * self.time_subdivision;
+        self.position_in_score = 0;
+        self.current_sample_index = 0;
     }
 
     /// Set the metronome core's time subdivision.
-    pub fn set_time_subdivision(&mut self, time_subdivision: usize) {
+    fn set_time_subdivision(&mut self, time_subdivision: usize) {
         self.time_subdivision = time_subdivision;
+        self.score_length = self.time_per_bar * self.time_subdivision;
+        self.position_in_score = 0;
+        self.current_sample_index = 0;
     }
 }
