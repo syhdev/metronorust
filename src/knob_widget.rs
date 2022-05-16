@@ -5,6 +5,10 @@ use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 
+use graphics::*;
+use graphics::{Context, Graphics};
+use opengl_graphics::{GlGraphics, OpenGL};
+
 pub struct KnobWidget {
     pub center: Point,
     pub radius: i16,
@@ -12,37 +16,59 @@ pub struct KnobWidget {
 }
 
 impl KnobWidget {
-    pub fn render(&mut self, canvas: &mut Canvas<Window>) {
-        canvas
-            .filled_pie(
-                self.center.x,
-                self.center.y,
-                self.radius + 20,
-                -90,
-                self.current_position - 90,
-                KNOB,
-            )
-            .unwrap();
+    pub fn render(&mut self, context: Context, gl: &mut GlGraphics) {
+        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
+        const RED: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 
-        canvas
-            .filled_circle(self.center.x, self.center.y, self.radius, KNOB_CENTER)
-            .unwrap();
+        // let square = rectangle::square(0.0, 0.0, 50.0);
+        let square = rectangle::square(
+            (self.center.x - self.radius) as f64,
+            (self.center.y - self.radius) as f64,
+            2.0 * self.radius as f64,
+        );
+        // let (x, y) = (args.window_size[0] / 2.0, args.window_size[1] / 2.0);
 
-        canvas
-            .circle(self.center.x, self.center.y, self.radius + 21, KNOB_CENTER)
-            .unwrap();
-        canvas
-            .circle(self.center.x, self.center.y, self.radius + 22, KNOB_CENTER)
-            .unwrap();
+        // ellipse(RED, square, context.transform.trans(0.0, 0.0), gl);
+        circle_arc(
+            RED,
+            (self.radius + 10) as f64,
+            0.0,
+            1.5,
+            square,
+            context.transform.trans(0.0, 0.0),
+            gl,
+        );
 
-        canvas
-            .string(
-                self.center.x,
-                self.center.y,
-                self.current_position.to_string().as_str(),
-                TEXT,
-            )
-            .unwrap();
+        // canvas
+        //     .filled_pie(
+        //         self.center.x,
+        //         self.center.y,
+        //         self.radius + 20,
+        //         -90,
+        //         self.current_position - 90,
+        //         KNOB,
+        //     )
+        //     .unwrap();
+
+        // canvas
+        //     .filled_circle(self.center.x, self.center.y, self.radius, KNOB_CENTER)
+        //     .unwrap();
+
+        // canvas
+        //     .circle(self.center.x, self.center.y, self.radius + 21, KNOB_CENTER)
+        //     .unwrap();
+        // canvas
+        //     .circle(self.center.x, self.center.y, self.radius + 22, KNOB_CENTER)
+        //     .unwrap();
+
+        // canvas
+        //     .string(
+        //         self.center.x,
+        //         self.center.y,
+        //         self.current_position.to_string().as_str(),
+        //         TEXT,
+        //     )
+        //     .unwrap();
     }
 
     pub fn on_click(&mut self) {}
@@ -65,11 +91,11 @@ impl KnobWidget {
 
     pub fn mouse_is_over(&mut self, canvas: &mut Canvas<Window>) {
         // self.color = pixels::Color::RGB(255, 255, 255);
-        self.render(canvas);
+        // self.render(canvas);
     }
 
     pub fn mouse_is_not_over(&mut self, canvas: &mut Canvas<Window>) {
         // self.color = pixels::Color::RGB(255, 20, 20);
-        self.render(canvas);
+        // self.render(canvas);
     }
 }

@@ -9,3 +9,9 @@ edition = "2021"
 cpal = "0.13.5"
 clap = { version = "3.1.12", features = ["derive"] }
 sdl2 = { version = "0.35.2", features = ["gfx"] }
+piston = "0.53.1"
+piston2d-graphics = "0.42.0"
+# pistoncore-sdl2_window = "0.68.0"
+pistoncore-glutin_window = "0.70.1"
+piston2d-opengl_graphics = "0.81.0"
+piston2d-touch_visualizer = "0.32.0"
