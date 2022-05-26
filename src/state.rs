@@ -8,28 +8,24 @@ use cgmath::prelude::*;
 
 pub const VERTICES: &[Vertex] = &[
     Vertex {
-        position: [-0.0868241, 0.49240386, 0.0],
-        color: [0.5, 0.0, 0.5],
+        position: [-0.9, -0.9, 0.0],
+        color: [0.0, 0.0, 0.9],
     }, // A
     Vertex {
-        position: [-0.49513406, 0.06958647, 0.0],
-        color: [0.5, 0.0, 0.5],
+        position: [0.9, -0.9, 0.0],
+        color: [0.0, 0.9, 0.0],
     }, // B
     Vertex {
-        position: [-0.21918549, -0.44939706, 0.0],
-        color: [0.5, 0.0, 0.5],
+        position: [0.9, 0.9, 0.0],
+        color: [0.9, 0.0, 0.0],
     }, // C
     Vertex {
-        position: [0.35966998, -0.3473291, 0.0],
-        color: [0.5, 0.0, 0.5],
+        position: [-0.9, 0.9, 0.0],
+        color: [0.9, 0.0, 0.0],
     }, // D
-    Vertex {
-        position: [0.44147372, 0.2347359, 0.0],
-        color: [0.5, 0.0, 0.5],
-    }, // E
 ];
 
-pub const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4, /* padding */ 0];
+pub const INDICES: &[u16] = &[0, 1, 2, 2, 3, 0];
 pub struct State {
     surface: wgpu::Surface,
     device: wgpu::Device,
@@ -43,13 +39,13 @@ pub struct State {
     num_indices: u32,
     // diffuse_bind_group: wgpu::BindGroup,
     // diffuse_texture: texture::Texture,
-    camera: Camera,
+    // camera: Camera,
     camera_uniform: CameraUniform,
     camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
     // camera_controller: CameraController,
-    instances: Vec<Instance>,
-    instance_buffer: wgpu::Buffer,
+    // instances: Vec<Instance>,
+    // instance_buffer: wgpu::Buffer,
 }
 
 impl State {
@@ -163,22 +159,22 @@ impl State {
         });
         let num_indices = INDICES.len() as u32;
 
-        let camera = Camera {
-            // position the camera one unit up and 2 units back
-            // +z is out of the screen
-            eye: (0.0, 1.0, 2.0).into(),
-            // have it look at the origin
-            target: (0.0, 0.0, 0.0).into(),
-            // which way is "up"
-            up: cgmath::Vector3::unit_y(),
-            aspect: config.width as f32 / config.height as f32,
-            fovy: 45.0,
-            znear: 0.1,
-            zfar: 100.0,
-        };
+        // let camera = Camera {
+        //     // position the camera one unit up and 2 units back
+        //     // +z is out of the screen
+        //     eye: (0.0, 0.0, 2.0).into(),
+        //     // have it look at the origin
+        //     target: (0.0, 0.0, 0.0).into(),
+        //     // which way is "up"
+        //     up: cgmath::Vector3::unit_y(),
+        //     aspect: config.width as f32 / config.height as f32,
+        //     fovy: 45.0,
+        //     znear: 0.1,
+        //     zfar: 100.0,
+        // };
 
-        let mut camera_uniform = CameraUniform::new();
-        camera_uniform.update_view_proj(&camera);
+        let mut camera_uniform = CameraUniform::new(size.width as f32, size.height as f32);
+        // camera_uniform.update_view_proj(&camera);
 
         let camera_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
@@ -186,11 +182,13 @@ impl State {
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
+        // println!("{:?}", camera_buffer);
+
         let camera_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX,
+                    visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
                     ty: wgpu::BindingType::Buffer {
                         ty: wgpu::BufferBindingType::Uniform,
                         has_dynamic_offset: false,
@@ -222,8 +220,8 @@ impl State {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
-                entry_point: "vs_main",                          // 1.
-                buffers: &[Vertex::desc(), InstanceRaw::desc()], // 2.
+                entry_point: "vs_main",                                // 1.
+                buffers: &[Vertex::desc() /* , InstanceRaw::desc()*/], // 2.
             },
             fragment: Some(wgpu::FragmentState {
                 // 3.
@@ -264,37 +262,37 @@ impl State {
         //         push_constant_ranges: &[],
         //     });
 
-        let instances = (0..NUM_INSTANCES_PER_ROW)
-            .flat_map(|z| {
-                (0..NUM_INSTANCES_PER_ROW).map(move |x| {
-                    let position = cgmath::Vector3 {
-                        x: x as f32,
-                        y: 0.0,
-                        z: z as f32,
-                    } - INSTANCE_DISPLACEMENT;
+        // let instances = (0..NUM_INSTANCES_PER_ROW)
+        //     .flat_map(|z| {
+        //         (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+        //             let position = cgmath::Vector3 {
+        //                 x: x as f32,
+        //                 y: 0.0,
+        //                 z: z as f32,
+        //             } - INSTANCE_DISPLACEMENT;
 
-                    let rotation = if position.is_zero() {
-                        // this is needed so an object at (0, 0, 0) won't get scaled to zero
-                        // as Quaternions can effect scale if they're not created correctly
-                        cgmath::Quaternion::from_axis_angle(
-                            cgmath::Vector3::unit_z(),
-                            cgmath::Deg(0.0),
-                        )
-                    } else {
-                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
-                    };
+        //             let rotation = if position.is_zero() {
+        //                 // this is needed so an object at (0, 0, 0) won't get scaled to zero
+        //                 // as Quaternions can effect scale if they're not created correctly
+        //                 cgmath::Quaternion::from_axis_angle(
+        //                     cgmath::Vector3::unit_z(),
+        //                     cgmath::Deg(0.0),
+        //                 )
+        //             } else {
+        //                 cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+        //             };
 
-                    Instance { position, rotation }
-                })
-            })
-            .collect::<Vec<_>>();
+        //             Instance { position, rotation }
+        //         })
+        //     })
+        //     .collect::<Vec<_>>();
 
-        let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
-        let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Instance Buffer"),
-            contents: bytemuck::cast_slice(&instance_data),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
+        // let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
+        // let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        //     label: Some("Instance Buffer"),
+        //     contents: bytemuck::cast_slice(&instance_data),
+        //     usage: wgpu::BufferUsages::VERTEX,
+        // });
 
         Self {
             surface,
@@ -309,13 +307,13 @@ impl State {
             num_indices,
             // diffuse_bind_group,
             // diffuse_texture,
-            camera,
+            // camera,
             camera_uniform,
             camera_buffer,
             camera_bind_group,
             // camera_controller,
-            instances,
-            instance_buffer,
+            // instances,
+            // instance_buffer,
         }
     }
 
@@ -378,11 +376,15 @@ impl State {
             render_pass.set_pipeline(&self.render_pipeline); // 2.
             render_pass.set_bind_group(0, &self.camera_bind_group, &[]);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-            render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
+            // render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
             render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16); // 1.
 
             // render_pass.draw(0..self.num_vertices, 0..1); // 3.
-            render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
+            render_pass.draw_indexed(
+                0..self.num_indices,
+                0,
+                /*0..self.instances.len() as _*/ 0..1,
+            );
             // 2.
         }
 
