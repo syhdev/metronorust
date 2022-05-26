@@ -1,25 +1,36 @@
 mod click_widget;
 mod colors;
-mod common;
 mod gui_canvas;
 mod knob_widget;
 mod kp_sound;
 mod metronome_app;
 mod metronome_core;
+mod misc;
 mod nb_widget;
+mod state;
 mod ui_widgets;
 use clap::Parser;
 
-use crate::colors::BACKGROUND_COLOR;
+// use crate::colors::BACKGROUND_COLOR;
 
-use gui_canvas::GUICanvas;
+// use gui_canvas::GUICanvas;
 
-extern crate sdl2;
+// extern crate sdl2;
 use metronome_app::MetronomeApp;
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
-use sdl2::mouse::MouseButton;
-use sdl2::sys::SDL_GetMouseState;
+// use sdl2::event::Event;
+// use sdl2::keyboard::Keycode;
+// use sdl2::mouse::MouseButton;
+// use sdl2::sys::SDL_GetMouseState;
+
+use winit::{
+    event::*,
+    event_loop::{ControlFlow, EventLoop},
+    window::WindowBuilder,
+};
+
+use crate::misc::*;
+
+use crate::state::*;
 
 const SCREEN_WIDTH: u32 = 800;
 const SCREEN_HEIGHT: u32 = 600;
@@ -38,182 +49,240 @@ struct Cli {
     subdiv: usize,
 }
 
+async fn run() {
+    env_logger::init();
+    let event_loop = EventLoop::new();
+    let window = WindowBuilder::new().build(&event_loop).unwrap();
+
+    let mut state = State::new(&window).await;
+
+    event_loop.run(move |event, _, control_flow| match event {
+        Event::WindowEvent {
+            ref event,
+            window_id,
+        } if window_id == window.id() => {
+            if !state.input(event) {
+                match event {
+                    WindowEvent::CloseRequested
+                    | WindowEvent::KeyboardInput {
+                        input:
+                            KeyboardInput {
+                                state: ElementState::Pressed,
+                                virtual_keycode: Some(VirtualKeyCode::Escape),
+                                ..
+                            },
+                        ..
+                    } => *control_flow = ControlFlow::Exit,
+                    WindowEvent::Resized(physical_size) => {
+                        state.resize(*physical_size);
+                    }
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        // new_inner_size is &&mut so we have to dereference it twice
+                        state.resize(**new_inner_size);
+                    }
+                    _ => {}
+                }
+            }
+        }
+        Event::RedrawRequested(window_id) if window_id == window.id() => {
+            state.update();
+            match state.render() {
+                Ok(_) => {}
+                // Reconfigure the surface if lost
+                Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
+                // The system is out of memory, we should probably quit
+                Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                // All other errors (Outdated, Timeout) should be resolved by the next frame
+                Err(e) => eprintln!("{:?}", e),
+            }
+        }
+        Event::MainEventsCleared => {
+            // RedrawRequested will only trigger once, unless we manually
+            // request it.
+            window.request_redraw();
+        }
+        _ => {}
+    });
+}
+
 fn main() -> Result<(), String> {
     let cli = Cli::parse();
 
-    let sdl_context = sdl2::init()?;
-    let video_subsys = sdl_context.video()?;
-    let window = video_subsys
-        .window(
-            "rust-sdl2_gfx: draw line & FPSManager",
-            SCREEN_WIDTH,
-            SCREEN_HEIGHT,
-        )
-        .position_centered()
-        .opengl()
-        .build()
-        .map_err(|e| e.to_string())?;
+    pollster::block_on(run());
 
-    let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
+    // let sdl_context = sdl2::init()?;
+    // let video_subsys = sdl_context.video()?;
+    // let window = video_subsys
+    //     .window(
+    //         "rust-sdl2_gfx: draw line & FPSManager",
+    //         SCREEN_WIDTH,
+    //         SCREEN_HEIGHT,
+    //     )
+    //     .position_centered()
+    //     .opengl()
+    //     .build()
+    //     .map_err(|e| e.to_string())?;
 
-    canvas.set_draw_color(BACKGROUND_COLOR);
-    canvas.clear();
+    // let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
 
-    let mut gui_canvas = GUICanvas::new_gui_canvas(SCREEN_HEIGHT as i16, SCREEN_WIDTH as i16, 4, 1);
+    // canvas.set_draw_color(BACKGROUND_COLOR);
+    // canvas.clear();
 
-    let metronome_app: MetronomeApp = MetronomeApp::create_metronome_app(
-        cli.bpm,
-        cli.time_signature,
-        cli.subdiv,
-        gui_canvas.compute_score(),
-    );
+    // let mut gui_canvas = GUICanvas::new_gui_canvas(SCREEN_HEIGHT as i16, SCREEN_WIDTH as i16, 4, 1);
 
-    gui_canvas.render_canvas(&mut canvas);
-    canvas.present();
+    // let metronome_app: MetronomeApp = MetronomeApp::create_metronome_app(
+    //     cli.bpm,
+    //     cli.time_signature,
+    //     cli.subdiv,
+    //     gui_canvas.compute_score(),
+    // );
 
-    let mut events = sdl_context.event_pump()?;
+    // gui_canvas.render_canvas(&mut canvas);
+    // canvas.present();
 
-    'main: loop {
-        for event in events.poll_iter() {
-            match event {
-                Event::Quit { .. } => break 'main,
+    // let mut events = sdl_context.event_pump()?;
 
-                Event::KeyDown {
-                    keycode: Some(keycode),
-                    ..
-                } => {
-                    if keycode == Keycode::Escape {
-                        break 'main;
-                    }
-                }
+    // 'main: loop {
+    //     for event in events.poll_iter() {
+    //         match event {
+    //             Event::Quit { .. } => break 'main,
 
-                Event::MouseButtonDown {
-                    mouse_btn, x, y, ..
-                } => match mouse_btn {
-                    MouseButton::Left => match gui_canvas.on_click(x, y) {
-                        200 => {
-                            let time_per_bar = gui_canvas
-                                .btn_time_per_bar
-                                .current_number
-                                .try_into()
-                                .unwrap();
+    //             Event::KeyDown {
+    //                 keycode: Some(keycode),
+    //                 ..
+    //             } => {
+    //                 if keycode == Keycode::Escape {
+    //                     break 'main;
+    //                 }
+    //             }
 
-                            let subdiv = gui_canvas.btn_subdiv.current_number.try_into().unwrap();
+    //             Event::MouseButtonDown {
+    //                 mouse_btn, x, y, ..
+    //             } => match mouse_btn {
+    //                 MouseButton::Left => match gui_canvas.on_click(x, y) {
+    //                     200 => {
+    //                         let time_per_bar = gui_canvas
+    //                             .btn_time_per_bar
+    //                             .current_number
+    //                             .try_into()
+    //                             .unwrap();
 
-                            let bpm = gui_canvas.knob1.current_position.try_into().unwrap();
+    //                         let subdiv = gui_canvas.btn_subdiv.current_number.try_into().unwrap();
 
-                            gui_canvas.init_click_widgets(time_per_bar, subdiv);
-                            canvas.set_draw_color(BACKGROUND_COLOR);
-                            canvas.clear();
-                            gui_canvas.render_canvas(&mut canvas);
-                            canvas.present();
+    //                         let bpm = gui_canvas.knob1.current_position.try_into().unwrap();
 
-                            let score = gui_canvas.compute_score();
+    //                         gui_canvas.init_click_widgets(time_per_bar, subdiv);
+    //                         canvas.set_draw_color(BACKGROUND_COLOR);
+    //                         canvas.clear();
+    //                         gui_canvas.render_canvas(&mut canvas);
+    //                         canvas.present();
 
-                            metronome_app.metronome_core.lock().unwrap().setup(
-                                time_per_bar,
-                                subdiv,
-                                bpm,
-                                score,
-                            );
-                        }
-                        999 => {}
-                        _ => {
-                            canvas.set_draw_color(BACKGROUND_COLOR);
-                            canvas.clear();
-                            gui_canvas.render_canvas(&mut canvas);
-                            canvas.present();
+    //                         let score = gui_canvas.compute_score();
 
-                            let time_per_bar = gui_canvas
-                                .btn_time_per_bar
-                                .current_number
-                                .try_into()
-                                .unwrap();
+    //                         metronome_app.metronome_core.lock().unwrap().setup(
+    //                             time_per_bar,
+    //                             subdiv,
+    //                             bpm,
+    //                             score,
+    //                         );
+    //                     }
+    //                     999 => {}
+    //                     _ => {
+    //                         canvas.set_draw_color(BACKGROUND_COLOR);
+    //                         canvas.clear();
+    //                         gui_canvas.render_canvas(&mut canvas);
+    //                         canvas.present();
 
-                            let subdiv = gui_canvas.btn_subdiv.current_number.try_into().unwrap();
+    //                         let time_per_bar = gui_canvas
+    //                             .btn_time_per_bar
+    //                             .current_number
+    //                             .try_into()
+    //                             .unwrap();
 
-                            let bpm = gui_canvas.knob1.current_position.try_into().unwrap();
+    //                         let subdiv = gui_canvas.btn_subdiv.current_number.try_into().unwrap();
 
-                            canvas.set_draw_color(BACKGROUND_COLOR);
-                            canvas.clear();
-                            gui_canvas.render_canvas(&mut canvas);
-                            canvas.present();
+    //                         let bpm = gui_canvas.knob1.current_position.try_into().unwrap();
 
-                            let score = gui_canvas.compute_score();
+    //                         canvas.set_draw_color(BACKGROUND_COLOR);
+    //                         canvas.clear();
+    //                         gui_canvas.render_canvas(&mut canvas);
+    //                         canvas.present();
 
-                            metronome_app.metronome_core.lock().unwrap().setup(
-                                time_per_bar,
-                                subdiv,
-                                bpm,
-                                score,
-                            );
-                        }
-                    },
-                    _ => {}
-                },
+    //                         let score = gui_canvas.compute_score();
 
-                Event::MouseWheel { y, .. } => {
-                    let pos_x: &mut i32 = &mut 0;
-                    let pos_y: &mut i32 = &mut 0;
-                    unsafe {
-                        SDL_GetMouseState(pos_x, pos_y);
-                    }
+    //                         metronome_app.metronome_core.lock().unwrap().setup(
+    //                             time_per_bar,
+    //                             subdiv,
+    //                             bpm,
+    //                             score,
+    //                         );
+    //                     }
+    //                 },
+    //                 _ => {}
+    //             },
 
-                    if gui_canvas.on_mouse_wheel(*pos_x, *pos_y, y) {
-                        canvas.set_draw_color(BACKGROUND_COLOR);
-                        canvas.clear();
-                        gui_canvas.render_canvas(&mut canvas);
-                        canvas.present();
+    //             Event::MouseWheel { y, .. } => {
+    //                 let pos_x: &mut i32 = &mut 0;
+    //                 let pos_y: &mut i32 = &mut 0;
+    //                 unsafe {
+    //                     SDL_GetMouseState(pos_x, pos_y);
+    //                 }
 
-                        let time_per_bar = gui_canvas
-                            .btn_time_per_bar
-                            .current_number
-                            .try_into()
-                            .unwrap();
+    //                 if gui_canvas.on_mouse_wheel(*pos_x, *pos_y, y) {
+    //                     canvas.set_draw_color(BACKGROUND_COLOR);
+    //                     canvas.clear();
+    //                     gui_canvas.render_canvas(&mut canvas);
+    //                     canvas.present();
 
-                        let subdiv = gui_canvas.btn_subdiv.current_number.try_into().unwrap();
+    //                     let time_per_bar = gui_canvas
+    //                         .btn_time_per_bar
+    //                         .current_number
+    //                         .try_into()
+    //                         .unwrap();
 
-                        let bpm = gui_canvas.knob1.current_position.try_into().unwrap();
+    //                     let subdiv = gui_canvas.btn_subdiv.current_number.try_into().unwrap();
 
-                        gui_canvas.init_click_widgets(time_per_bar, subdiv);
-                        canvas.set_draw_color(BACKGROUND_COLOR);
-                        canvas.clear();
-                        gui_canvas.render_canvas(&mut canvas);
-                        canvas.present();
+    //                     let bpm = gui_canvas.knob1.current_position.try_into().unwrap();
 
-                        let score = gui_canvas.compute_score();
+    //                     gui_canvas.init_click_widgets(time_per_bar, subdiv);
+    //                     canvas.set_draw_color(BACKGROUND_COLOR);
+    //                     canvas.clear();
+    //                     gui_canvas.render_canvas(&mut canvas);
+    //                     canvas.present();
 
-                        metronome_app.metronome_core.lock().unwrap().setup(
-                            time_per_bar,
-                            subdiv,
-                            bpm,
-                            score,
-                        );
-                    }
-                }
+    //                     let score = gui_canvas.compute_score();
 
-                Event::MouseMotion { x, y, .. } => {
-                    // if btn1.is_mouse_inside(x, y) {
-                    //     btn1.mouse_is_over(&mut canvas);
-                    // } else {
-                    //     btn1.mouse_is_not_over(&mut canvas);
-                    // }
-                    // if btn2.is_mouse_inside(x, y) {
-                    //     btn2.mouse_is_over(&mut canvas);
-                    // } else {
-                    //     btn2.mouse_is_not_over(&mut canvas);
-                    // }
-                    // if btn3.is_mouse_inside(x, y) {
-                    //     btn3.mouse_is_over(&mut canvas);
-                    // } else {
-                    //     btn3.mouse_is_not_over(&mut canvas);
-                    // }
-                }
+    //                     metronome_app.metronome_core.lock().unwrap().setup(
+    //                         time_per_bar,
+    //                         subdiv,
+    //                         bpm,
+    //                         score,
+    //                     );
+    //                 }
+    //             }
 
-                _ => {}
-            }
-        }
-    }
+    //             Event::MouseMotion { x, y, .. } => {
+    //                 // if btn1.is_mouse_inside(x, y) {
+    //                 //     btn1.mouse_is_over(&mut canvas);
+    //                 // } else {
+    //                 //     btn1.mouse_is_not_over(&mut canvas);
+    //                 // }
+    //                 // if btn2.is_mouse_inside(x, y) {
+    //                 //     btn2.mouse_is_over(&mut canvas);
+    //                 // } else {
+    //                 //     btn2.mouse_is_not_over(&mut canvas);
+    //                 // }
+    //                 // if btn3.is_mouse_inside(x, y) {
+    //                 //     btn3.mouse_is_over(&mut canvas);
+    //                 // } else {
+    //                 //     btn3.mouse_is_not_over(&mut canvas);
+    //                 // }
+    //             }
+
+    //             _ => {}
+    //         }
+    //     }
+    // }
 
     Ok(())
 }
