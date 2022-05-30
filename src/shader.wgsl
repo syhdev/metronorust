@@ -49,19 +49,80 @@ fn vs_main(
 // Fragment shader
 
 
-[[stage(fragment)]]
-fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
-    let st = in.clip_position;
-    let center = vec2<f32>(camera.resolution.x / 2.0, camera.resolution.y / 2.0);
-    // let center = vec2<f32>(100.0, 300.0);
-    let pct = sqrt((st.x - center.x) * (st.x - center.x) + (st.y - center.y) * (st.y - center.y));
-    let color = vec3<f32>(pct / 800.0);
-    // var color: vec3<f32> = vec3<f32>(0.9, 0.9, 0.0);
-    // if (in.clip_position.x > 100.0) {
-    //     color = vec3<f32>(0.0, 0.9, 0.9);
-    // } else {
-    //     color = vec3<f32>(0.0, 0.0, 0.0);
-    // }
-    return vec4<f32>(color, 1.0);
+// -----------------------------------------------
+// Convert r, g, b to normalized vec3
+// -----------------------------------------------
+fn rgb(r: f32, g: f32, b: f32) -> vec3<f32> {
+    return vec3<f32>(r / 255.0, g / 255.0, b / 255.0);
 }
 
+// -----------------------------------------------
+//  Draw a circle at vec2 `pos` with radius `rad` and
+//  color `color`.
+//  -----------------------------------------------
+fn circle(uv: vec2<f32>, pos: vec2<f32>, rad: f32, color: vec3<f32>) -> vec4<f32> {
+    let d = length(pos - uv) - rad;
+    let t = clamp(d, 0.0, 1.0);
+    return vec4<f32>(color, 1.0 - t);
+}
+
+
+
+[[stage(fragment)]]
+fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
+    // let st = in.clip_position;
+    // let center = vec2<f32>(camera.resolution.x / 2.0, camera.resolution.y / 2.0);
+    // let pct = sqrt((st.x - center.x) * (st.x - center.x) + (st.y - center.y) * (st.y - center.y));
+    // let color = vec3<f32>(pct / 800.0);
+    
+    
+    // let resolution = vec2<f32>(camera.resolution.x, camera.resolution.y);
+
+    // let color = circle(in.clip_position.xy / resolution, vec2<f32>(200.0, 200.0) / resolution, 0.1);
+
+    // return vec4<f32>(vec3<f32>(color), 1.0);
+
+    let two_pi = 2.0 * 3.14159265359;
+
+
+    let resolution = vec2<f32>(camera.resolution.x, camera.resolution.y);
+
+    let uv = in.clip_position.xy;
+
+    let screen_center = resolution.xy * 0.5;
+
+    let radius = 30.0;
+    let metr_radius = 100.0;
+
+    let nb = 5;
+
+    // Background layer
+    let grey = 20.0;
+    let background_layer = vec4<f32>(rgb(grey, grey, grey), 1.0);
+	
+	// Circle
+    let blue = rgb(20.0, 0.0, 150.0);
+    let angle = two_pi / f32(nb);
+    let offset = two_pi / 4.0;
+    var center = vec2<f32>(cos(offset - angle * 0.0), -1.0 * sin(offset - angle * 0.0)) * metr_radius + screen_center;
+    let main_circle_layer = circle(uv, center, radius, blue);
+    
+	
+	// Blend the two
+    var f = mix(background_layer, main_circle_layer, main_circle_layer.a);
+
+    var i:  i32 = 1;
+    loop {
+        if (i >= nb) { 
+            break;
+        }
+
+        center = vec2<f32>(cos(offset - angle * f32(i)), -1.0 * sin(offset - angle * f32(i))) * metr_radius + screen_center;
+
+        let circle_layer = circle(uv, center, radius, blue);
+        f = mix(f, circle_layer, circle_layer.a);
+        i = i + 1;
+    }
+
+    return f;
+}

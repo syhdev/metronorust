@@ -8,20 +8,20 @@ use cgmath::prelude::*;
 
 pub const VERTICES: &[Vertex] = &[
     Vertex {
-        position: [-0.9, -0.9, 0.0],
-        color: [0.0, 0.0, 0.9],
+        position: [-1.0, -1.0, 0.0],
+        color: [0.0, 0.0, 1.0],
     }, // A
     Vertex {
-        position: [0.9, -0.9, 0.0],
-        color: [0.0, 0.9, 0.0],
+        position: [1.0, -1.0, 0.0],
+        color: [0.0, 1.0, 0.0],
     }, // B
     Vertex {
-        position: [0.9, 0.9, 0.0],
-        color: [0.9, 0.0, 0.0],
+        position: [1.0, 1.0, 0.0],
+        color: [1.0, 0.0, 0.0],
     }, // C
     Vertex {
-        position: [-0.9, 0.9, 0.0],
-        color: [0.9, 0.0, 0.0],
+        position: [-1.0, 1.0, 0.0],
+        color: [1.0, 0.0, 0.0],
     }, // D
 ];
 
