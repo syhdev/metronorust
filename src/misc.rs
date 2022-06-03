@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 pub struct Point {
     pub x: i16,
     pub y: i16,
@@ -156,6 +158,34 @@ impl Vertex {
                     format: wgpu::VertexFormat::Float32x3,
                 },
             ],
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Debug)]
+pub struct SoundTexture {
+    pub width: f32,
+    pub height: f32,
+    pub texture: Rc<wgpu::Texture>,
+    pub view: Rc<wgpu::TextureView>,
+    pub sampler: Rc<wgpu::Sampler>,
+}
+
+impl SoundTexture {
+    pub fn new(
+        width: f32,
+        height: f32,
+        texture: Rc<wgpu::Texture>,
+        view: Rc<wgpu::TextureView>,
+        sampler: Rc<wgpu::Sampler>,
+    ) -> Self {
+        Self {
+            width: width,
+            height: height,
+            texture: texture,
+            view: view,
+            sampler: sampler,
         }
     }
 }
