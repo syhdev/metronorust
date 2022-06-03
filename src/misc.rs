@@ -162,30 +162,20 @@ impl Vertex {
     }
 }
 
+// We need this for Rust to store our data correctly for the shaders
 #[repr(C)]
-#[derive(Clone, Debug)]
-pub struct SoundTexture {
-    pub width: f32,
-    pub height: f32,
-    pub texture: Rc<wgpu::Texture>,
-    pub view: Rc<wgpu::TextureView>,
-    pub sampler: Rc<wgpu::Sampler>,
+// This is so we can store this in a buffer
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct SoundUniform {
+    pub data: [f32; 16],
 }
 
-impl SoundTexture {
-    pub fn new(
-        width: f32,
-        height: f32,
-        texture: Rc<wgpu::Texture>,
-        view: Rc<wgpu::TextureView>,
-        sampler: Rc<wgpu::Sampler>,
-    ) -> Self {
-        Self {
-            width: width,
-            height: height,
-            texture: texture,
-            view: view,
-            sampler: sampler,
-        }
+impl SoundUniform {
+    pub fn new() -> Self {
+        Self { data: [0.0; 16] }
+    }
+
+    pub fn update_data(&mut self, data: [f32; 16]) {
+        self.data = data;
     }
 }
