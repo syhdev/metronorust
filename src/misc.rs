@@ -57,6 +57,13 @@ impl CameraUniform {
     // }
 }
 
+// #[repr(C)]
+// #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+// pub struct SoundTexture {
+//     view_proj: [[f32; 4]; 4],
+//     resolution: [f32; 4],
+// }
+
 pub struct Instance {
     pub position: cgmath::Vector3<f32>,
     pub rotation: cgmath::Quaternion<f32>,

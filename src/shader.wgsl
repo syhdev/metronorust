@@ -7,6 +7,11 @@
 //     [[location(8)]] model_matrix_3: vec4<f32>;
 // };
 
+[[group(1), binding(0)]]
+var t_sound: texture_2d<f32>;
+[[group(1), binding(1)]]
+var s_sound: sampler;
+
 struct CameraUniform {
     view_proj: mat4x4<f32>;
     resolution: vec2<f32>;
@@ -66,7 +71,13 @@ fn circle(uv: vec2<f32>, pos: vec2<f32>, rad: f32, color: vec3<f32>) -> vec4<f32
     return vec4<f32>(color, 1.0 - t);
 }
 
+// float circle(vec2 st, vec2 center, float radius) {
+//     return smoothstep(1., 1.-0.025, distance(st, center) / radius);
+// }
 
+fn ring(st: vec2<f32>, center: vec2<f32>, radius: f32, color: vec3<f32>) -> vec4<f32> {
+    return circle(st, center, radius, color) - circle(st, center, radius - 0.020, color);
+}
 
 [[stage(fragment)]]
 fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
@@ -84,6 +95,8 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 
     let two_pi = 2.0 * 3.14159265359;
 
+    let toto: vec4<f32> = textureLoad(t_sound, vec2<i32>(0, 0), 0);
+    let tata: vec4<f32> = textureLoad(t_sound, vec2<i32>(1, 0), 0);
 
     let resolution = vec2<f32>(camera.resolution.x, camera.resolution.y);
 
@@ -120,9 +133,9 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
         center = vec2<f32>(cos(offset - angle * f32(i)), -1.0 * sin(offset - angle * f32(i))) * metr_radius + screen_center;
 
         let circle_layer = circle(uv, center, radius, blue);
-        f = mix(f, circle_layer, circle_layer.a);
+        f = mix(f, circle_layer, circle_layer.a) ;
         i = i + 1;
     }
 
-    return f;
+    return f + toto;
 }
