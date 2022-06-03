@@ -151,7 +151,7 @@ fn fs_main(in: VertexOutput) -> [[location(0)]] vec4<f32> {
 
     // float data = texture(iChannel0, vec2(uv.x, 0.0)).x;
     // let data = (textureLoad(t_sound, vec2<i32>(0, 0), 0).y + textureLoad(t_sound, vec2<i32>(0, 0), 0).x) / 2.0 * 100.0;
-    let data = sound.data[0];
+    let data = sound.data[i32(in.clip_position.x) ] ;
 
     let y = mix(0.05, .95, (data + 1.0) / 2.0) - 0.5;// from [-1;1] to [0;1]
 

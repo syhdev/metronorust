@@ -6,6 +6,8 @@ use crate::misc::*;
 
 use cgmath::prelude::*;
 
+use rand::Rng;
+
 pub const VERTICES: &[Vertex] = &[
     Vertex {
         position: [-1.0, -1.0, 0.0],
@@ -50,11 +52,6 @@ pub struct State {
     sound_uniform: SoundUniform,
     sound_buffer: wgpu::Buffer,
     i: f32,
-    // sound_texture: wgpu::Texture,
-    // texture_size: wgpu::Extent3d,
-    // texture_bind_group_layout: wgpu::BindGroupLayout,
-    // sound_texture_view: wgpu::TextureView,
-    // sound_sampler: wgpu::Sampler,
 }
 
 impl State {
@@ -182,102 +179,6 @@ impl State {
             }],
             label: Some("sound"),
         });
-
-        // let texture_size = wgpu::Extent3d {
-        //     width: 4,
-        //     height: 1,
-        //     depth_or_array_layers: 1,
-        // };
-
-        // let texture_data = [
-        //     10, 10, 10, 255, 30, 30, 30, 255, 50, 50, 50, 255, 70, 70, 70, 255,
-        // ];
-        // let sound_texture = device.create_texture(&wgpu::TextureDescriptor {
-        //     // All textures are stored as 3D, we represent our 2D texture
-        //     // by setting depth to 1.
-        //     size: texture_size,
-        //     mip_level_count: 1, // We'll talk about this a little later
-        //     sample_count: 1,
-        //     dimension: wgpu::TextureDimension::D2,
-        //     // Most images are stored using sRGB so we need to reflect that here.
-        //     format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        //     // TEXTURE_BINDING tells wgpu that we want to use this texture in shaders
-        //     // COPY_DST means that we want to copy data to this texture
-        //     usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
-        //     label: Some("sound_texture"),
-        // });
-
-        // queue.write_texture(
-        //     // Tells wgpu where to copy the pixel data
-        //     wgpu::ImageCopyTexture {
-        //         texture: &sound_texture,
-        //         mip_level: 0,
-        //         origin: wgpu::Origin3d::ZERO,
-        //         aspect: wgpu::TextureAspect::All,
-        //     },
-        //     // The actual pixel data
-        //     &texture_data,
-        //     // The layout of the texture
-        //     wgpu::ImageDataLayout {
-        //         offset: 0,
-        //         bytes_per_row: std::num::NonZeroU32::new(4 * 16),
-        //         rows_per_image: std::num::NonZeroU32::new(1),
-        //     },
-        //     texture_size,
-        // );
-
-        // // We don't need to configure the texture view much, so let's
-        // // let wgpu define it.
-        // let sound_texture_view = sound_texture.create_view(&wgpu::TextureViewDescriptor::default());
-        // let sound_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-        //     address_mode_u: wgpu::AddressMode::ClampToEdge,
-        //     address_mode_v: wgpu::AddressMode::ClampToEdge,
-        //     address_mode_w: wgpu::AddressMode::ClampToEdge,
-        //     mag_filter: wgpu::FilterMode::Linear,
-        //     min_filter: wgpu::FilterMode::Nearest,
-        //     mipmap_filter: wgpu::FilterMode::Nearest,
-        //     ..Default::default()
-        // });
-
-        // let texture_bind_group_layout =
-        //     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        //         entries: &[
-        //             wgpu::BindGroupLayoutEntry {
-        //                 binding: 0,
-        //                 visibility: wgpu::ShaderStages::FRAGMENT,
-        //                 ty: wgpu::BindingType::Texture {
-        //                     multisampled: false,
-        //                     view_dimension: wgpu::TextureViewDimension::D2,
-        //                     sample_type: wgpu::TextureSampleType::Float { filterable: true },
-        //                 },
-        //                 count: None,
-        //             },
-        //             wgpu::BindGroupLayoutEntry {
-        //                 binding: 1,
-        //                 visibility: wgpu::ShaderStages::FRAGMENT,
-        //                 // This should match the filterable field of the
-        //                 // corresponding Texture entry above.
-        //                 ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-        //                 count: None,
-        //             },
-        //         ],
-        //         label: Some("texture_bind_group_layout"),
-        //     });
-
-        // let sound_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        //     layout: &texture_bind_group_layout,
-        //     entries: &[
-        //         wgpu::BindGroupEntry {
-        //             binding: 0,
-        //             resource: wgpu::BindingResource::TextureView(&sound_texture_view),
-        //         },
-        //         wgpu::BindGroupEntry {
-        //             binding: 1,
-        //             resource: wgpu::BindingResource::Sampler(&sound_sampler),
-        //         },
-        //     ],
-        //     label: Some("sound_bind_group"),
-        // });
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some("Shader"),
@@ -458,11 +359,6 @@ impl State {
             // instance_buffer,
             sound_bind_group,
             i,
-            // sound_texture,
-            // texture_size,
-            // texture_bind_group_layout,
-            // sound_texture_view,
-            // sound_sampler,
             sound_uniform,
             sound_buffer,
         }
@@ -484,76 +380,30 @@ impl State {
     pub fn update(&mut self) {
         // self.camera_controller.update_camera(&mut self.camera);
         // self.camera_uniform.update_view_proj(&self.camera);
-        // self.queue.write_buffer(
+        // self.queue.write_buffer(s
         //     &self.camera_buffer,
         //     0,
         //     bytemuck::cast_slice(&[self.camera_uniform]),
         // );
 
-        self.sound_uniform.data = [f32::cos(self.i); 16];
-        self.i = self.i + 0.01;
+        let mut rng = rand::thread_rng();
+        let mut vec: Vec<f32> = Vec::with_capacity(1024);
+        for _ in 0..vec.capacity() {
+            vec.push(rng.gen_range(0.0..1.0));
+        }
+        // println!("Integer: {}", );
+        let a: [f32; 1024] = vec.as_slice().try_into().unwrap();
+
+        // self.sound_uniform.data = [f32::cos(self.i); 16];
+        self.sound_uniform.data = a; //[a; 1024];
+                                     // println!("{}", a);
+                                     // self.i = self.i + 0.01;
 
         self.queue.write_buffer(
             &self.sound_buffer,
             0,
             bytemuck::cast_slice(&[self.sound_uniform]),
         );
-
-        // let texture_data = [
-        //     (10.0 * f32::cos(self.i)) as u8,
-        //     (10.0 * f32::sin(self.i)) as u8,
-        //     (10.0 * f32::tan(self.i)) as u8,
-        //     255,
-        //     (30.0 * f32::cos(self.i)) as u8,
-        //     (30.0 * f32::sin(self.i)) as u8,
-        //     (30.0 * f32::tan(self.i)) as u8,
-        //     255,
-        //     (50.0 * f32::cos(self.i)) as u8,
-        //     (50.0 * f32::sin(self.i)) as u8,
-        //     (50.0 * f32::tan(self.i)) as u8,
-        //     255,
-        //     (70.0 * f32::cos(self.i)) as u8,
-        //     (70.0 * f32::sin(self.i)) as u8,
-        //     (70.0 * f32::tan(self.i)) as u8,
-        //     255,
-        // ];
-
-        // println!("{}", texture_data[1]);
-
-        // self.queue.write_texture(
-        //     // Tells wgpu where to copy the pixel data
-        //     wgpu::ImageCopyTexture {
-        //         texture: &self.sound_texture,
-        //         mip_level: 0,
-        //         origin: wgpu::Origin3d::ZERO,
-        //         aspect: wgpu::TextureAspect::All,
-        //     },
-        //     // The actual pixel data
-        //     &texture_data,
-        //     // The layout of the texture
-        //     wgpu::ImageDataLayout {
-        //         offset: 0,
-        //         bytes_per_row: std::num::NonZeroU32::new(4 * 16),
-        //         rows_per_image: std::num::NonZeroU32::new(1),
-        //     },
-        //     self.texture_size,
-        // );
-
-        // self.sound_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-        //     layout: &self.texture_bind_group_layout,
-        //     entries: &[
-        //         wgpu::BindGroupEntry {
-        //             binding: 0,
-        //             resource: wgpu::BindingResource::TextureView(&self.sound_texture_view),
-        //         },
-        //         wgpu::BindGroupEntry {
-        //             binding: 1,
-        //             resource: wgpu::BindingResource::Sampler(&self.sound_sampler),
-        //         },
-        //     ],
-        //     label: Some("sound_bind_group"),
-        // });
-        // self.i = self.i + 0.01;
     }
 
     pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {

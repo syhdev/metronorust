@@ -167,15 +167,15 @@ impl Vertex {
 // This is so we can store this in a buffer
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct SoundUniform {
-    pub data: [f32; 16],
+    pub data: [f32; 1024],
 }
 
 impl SoundUniform {
     pub fn new() -> Self {
-        Self { data: [0.0; 16] }
+        Self { data: [0.0; 1024] }
     }
 
-    pub fn update_data(&mut self, data: [f32; 16]) {
+    pub fn update_data(&mut self, data: [f32; 1024]) {
         self.data = data;
     }
 }
