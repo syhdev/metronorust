@@ -1,4 +1,5 @@
 use crate::kp_sound::{new_kp_sound, KPSound};
+use ring_channel::*;
 
 pub struct MetronomeCore {
     click_states: [KPSound; 4],
@@ -11,9 +12,12 @@ pub struct MetronomeCore {
     score: Vec<usize>,
     position_in_score: usize,
     current_sample_index: usize,
+    signal_sender: RingSender<[f32; 1024]>,
+    output_buffer: [f32; 1024],
+    output_buffer_index: usize,
 }
 
-pub fn new_metronome_core() -> MetronomeCore {
+pub fn new_metronome_core(signal_sender: RingSender<[f32; 1024]>) -> MetronomeCore {
     let kp1: KPSound = new_kp_sound();
     let kp2: KPSound = new_kp_sound();
     let kp3: KPSound = new_kp_sound();
@@ -29,6 +33,9 @@ pub fn new_metronome_core() -> MetronomeCore {
         score: vec![0],
         position_in_score: 0,
         current_sample_index: 0,
+        signal_sender,
+        output_buffer: [0.0; 1024],
+        output_buffer_index: 0,
     };
 
     metronome.init_metronome();
@@ -82,6 +89,13 @@ impl MetronomeCore {
             if self.position_in_score >= self.score_length {
                 self.position_in_score = 0;
             }
+        }
+
+        self.output_buffer[self.output_buffer_index] = output;
+        self.output_buffer_index = self.output_buffer_index + 1;
+        if self.output_buffer_index >= 1024 {
+            self.signal_sender.send(self.output_buffer);
+            self.output_buffer_index = 0;
         }
 
         output

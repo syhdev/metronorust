@@ -17,3 +17,4 @@ pollster = "0.2.5"
 bytemuck = { version = "1.9.1", features = [ "derive" ] }
 cgmath = "0.18.0"
 rand = "0.8.5"
+ring-channel = "0.11.0"

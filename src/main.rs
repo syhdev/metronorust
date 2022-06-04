@@ -12,6 +12,9 @@ mod ui_widgets;
 use clap::Parser;
 use rand::Rng;
 
+use ring_channel::*;
+use std::num::NonZeroUsize;
+
 // use crate::colors::BACKGROUND_COLOR;
 
 // use gui_canvas::GUICanvas;
@@ -59,8 +62,15 @@ async fn run() {
 
     let mut state = State::new(&window).await;
 
-    let metronome_app: MetronomeApp =
-        MetronomeApp::create_metronome_app(cli.bpm, cli.time_signature, cli.subdiv, vec![1; 4]);
+    let (mut sender, mut receiver) = ring_channel(NonZeroUsize::new(1).unwrap());
+
+    let metronome_app: MetronomeApp = MetronomeApp::create_metronome_app(
+        cli.bpm,
+        cli.time_signature,
+        cli.subdiv,
+        vec![1; 4],
+        sender,
+    );
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent {
@@ -96,7 +106,8 @@ async fn run() {
             for _ in 0..vec.capacity() {
                 vec.push(rng.gen_range(0.0..1.0));
             }
-            let a: [f32; 1024] = vec.as_slice().try_into().unwrap();
+            // let a: [f32; 1024] = vec.as_slice().try_into().unwrap();
+            let a: [f32; 1024] = receiver.recv().unwrap();
             state.update(a);
             match state.render() {
                 Ok(_) => {}

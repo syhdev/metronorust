@@ -1,5 +1,6 @@
 use crate::metronome_core::{new_metronome_core, MetronomeCore};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use ring_channel::*;
 use std::sync::{Arc, Mutex, MutexGuard};
 
 pub struct MetronomeApp {
@@ -13,8 +14,9 @@ impl MetronomeApp {
         time_per_bar: usize,
         subdiv: usize,
         score: Vec<usize>,
+        signal_sender: RingSender<[f32; 1024]>,
     ) -> Self {
-        let mut core: MetronomeCore = new_metronome_core();
+        let mut core: MetronomeCore = new_metronome_core(signal_sender);
 
         let host = cpal::default_host();
 
