@@ -175,7 +175,7 @@ impl SoundUniform {
         Self { data: [0.0; 1024] }
     }
 
-    pub fn update_data(&mut self, data: [f32; 1024]) {
-        self.data = data;
-    }
+    // pub fn update_data(&mut self, data: [f32; 1024]) {
+    //     self.data = data;
+    // }
 }

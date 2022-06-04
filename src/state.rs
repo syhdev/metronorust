@@ -6,8 +6,6 @@ use crate::misc::*;
 
 use cgmath::prelude::*;
 
-use rand::Rng;
-
 pub const VERTICES: &[Vertex] = &[
     Vertex {
         position: [-1.0, -1.0, 0.0],
@@ -377,7 +375,7 @@ impl State {
         false
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, noise: [f32; 1024]) {
         // self.camera_controller.update_camera(&mut self.camera);
         // self.camera_uniform.update_view_proj(&self.camera);
         // self.queue.write_buffer(s
@@ -386,18 +384,10 @@ impl State {
         //     bytemuck::cast_slice(&[self.camera_uniform]),
         // );
 
-        let mut rng = rand::thread_rng();
-        let mut vec: Vec<f32> = Vec::with_capacity(1024);
-        for _ in 0..vec.capacity() {
-            vec.push(rng.gen_range(0.0..1.0));
-        }
-        // println!("Integer: {}", );
-        let a: [f32; 1024] = vec.as_slice().try_into().unwrap();
-
         // self.sound_uniform.data = [f32::cos(self.i); 16];
-        self.sound_uniform.data = a; //[a; 1024];
-                                     // println!("{}", a);
-                                     // self.i = self.i + 0.01;
+        self.sound_uniform.data = noise; //[a; 1024];
+                                         // println!("{}", a);
+                                         // self.i = self.i + 0.01;
 
         self.queue.write_buffer(
             &self.sound_buffer,

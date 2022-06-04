@@ -10,6 +10,7 @@ mod nb_widget;
 mod state;
 mod ui_widgets;
 use clap::Parser;
+use rand::Rng;
 
 // use crate::colors::BACKGROUND_COLOR;
 
@@ -50,11 +51,16 @@ struct Cli {
 }
 
 async fn run() {
+    let cli = Cli::parse();
+
     env_logger::init();
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     let mut state = State::new(&window).await;
+
+    let metronome_app: MetronomeApp =
+        MetronomeApp::create_metronome_app(cli.bpm, cli.time_signature, cli.subdiv, vec![1; 4]);
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::WindowEvent {
@@ -85,7 +91,13 @@ async fn run() {
             }
         }
         Event::RedrawRequested(window_id) if window_id == window.id() => {
-            state.update();
+            let mut rng = rand::thread_rng();
+            let mut vec: Vec<f32> = Vec::with_capacity(1024);
+            for _ in 0..vec.capacity() {
+                vec.push(rng.gen_range(0.0..1.0));
+            }
+            let a: [f32; 1024] = vec.as_slice().try_into().unwrap();
+            state.update(a);
             match state.render() {
                 Ok(_) => {}
                 // Reconfigure the surface if lost
@@ -106,7 +118,7 @@ async fn run() {
 }
 
 fn main() -> Result<(), String> {
-    let cli = Cli::parse();
+    // let cli = Cli::parse();
 
     pollster::block_on(run());
 
